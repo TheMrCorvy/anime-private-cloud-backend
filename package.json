@@ -1,0 +1,57 @@
+{
+    "name": "anime-private-cloud-backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "node dist/server.js",
+        "dev": "nodemon src/server.ts",
+        "build": "tsc",
+        "clean": "rm -rf dist",
+        "prebuild": "npm run clean",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "lint": "eslint src/**/*.ts",
+        "lint:fix": "eslint src/**/*.ts --fix",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "prepare": "husky"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.0",
+        "express": "^5.1.0",
+        "helmet": "^8.1.0",
+        "morgan": "^1.10.1"
+    },
+    "lint-staged": {
+        "src/**/*.{ts,js}": [
+            "eslint --fix",
+            "prettier --check"
+        ],
+        "*.{json,md}": [
+            "prettier --check"
+        ]
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.31.0",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.3",
+        "@types/morgan": "^1.9.10",
+        "@types/node": "^24.1.0",
+        "@typescript-eslint/eslint-plugin": "^8.38.0",
+        "@typescript-eslint/parser": "^8.38.0",
+        "eslint": "^9.31.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.3",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.1.2",
+        "nodemon": "^3.1.10",
+        "prettier": "^3.6.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
+    }
+}
