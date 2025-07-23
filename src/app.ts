@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import type { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -7,7 +8,7 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-export function createApp() {
+export function createApp(): Express {
     const app = express();
 
     // Middlewares
@@ -39,7 +40,7 @@ export function createApp() {
     });
 
     // 404 handler
-    app.use('*', (req: Request, res: Response) => {
+    app.use((req: Request, res: Response) => {
         res.status(404).json({
             error: 'Route not found',
             path: req.originalUrl,
