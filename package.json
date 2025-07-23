@@ -13,7 +13,9 @@
         "format:check": "prettier --check .",
         "lint": "eslint src/**/*.ts",
         "lint:fix": "eslint src/**/*.ts --fix",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
         "prepare": "husky install"
     },
     "keywords": [],
@@ -40,6 +42,7 @@
         "@eslint/js": "^9.31.0",
         "@types/cors": "^2.8.19",
         "@types/express": "^5.0.3",
+        "@types/jest": "^30.0.0",
         "@types/morgan": "^1.9.10",
         "@types/node": "^24.1.0",
         "@typescript-eslint/eslint-plugin": "^8.38.0",
@@ -48,9 +51,11 @@
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.3",
         "husky": "^8.0.0",
+        "jest": "^30.0.5",
         "lint-staged": "^16.1.2",
         "nodemon": "^3.1.10",
         "prettier": "^3.6.2",
+        "ts-jest": "^29.4.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3"
     }
