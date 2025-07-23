@@ -23,7 +23,7 @@ export function createApp(): Express {
     app.use(express.json({ limit: '10mb' }));
     app.use(express.urlencoded({ extended: true }));
 
-    // Rutas
+    // Routes
     app.use(routes);
 
     // 404 handler

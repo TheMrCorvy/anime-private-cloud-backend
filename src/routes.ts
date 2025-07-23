@@ -17,7 +17,7 @@ router.get('/api/v1', (_req: Request, res: Response) => {
     });
 });
 
-// 404 handler (debe ir al final)
+// 404 handler
 router.use((req: Request, res: Response) => {
     res.status(404).json({
         error: 'Route not found',
