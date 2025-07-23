@@ -10,6 +10,9 @@ A TypeScript-based Express.js backend for managing anime content in a private cl
 - 📝 Request logging (Morgan)
 - 🔧 Environment variable configuration
 - 📊 Health check endpoint
+- 🎣 Git hooks with Husky (pre-commit & pre-push)
+- 🔍 ESLint for code quality
+- 💅 Prettier for code formatting
 
 ## Quick Start
 
@@ -70,6 +73,19 @@ Copy `.env.example` to `.env` and configure:
 - `PORT` - Server port (default: 3000)
 - `NODE_ENV` - Environment (development/production)
 - `CORS_ORIGIN` - Allowed CORS origin
+
+## Git Hooks
+
+This project uses Husky to manage Git hooks:
+
+### Pre-commit Hook
+- Runs ESLint on staged TypeScript/JavaScript files
+- Checks Prettier formatting on staged files
+- Automatically fixes linting issues where possible
+
+### Pre-push Hook
+- Builds the entire project to ensure it compiles successfully
+- Prevents pushing if the build fails
 
 ## Contributing
 
