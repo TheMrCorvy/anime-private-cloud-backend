@@ -42,7 +42,7 @@ module.exports = [
             'no-var': 'error',
             'prefer-const': 'error',
             eqeqeq: ['error', 'always'],
-            'no-console': 'warn',
+            'no-console': 'off',
         },
     },
     prettierConfig,
