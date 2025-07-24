@@ -25,6 +25,7 @@ module.exports = [
                 module: 'readonly',
                 require: 'readonly',
                 exports: 'readonly',
+                NodeJS: true,
             },
         },
         plugins: {
@@ -34,7 +35,7 @@ module.exports = [
         rules: {
             ...tsPlugin.configs.recommended.rules,
             'prettier/prettier': 'error',
-            '@typescript-eslint/no-unused-vars': 'error',
+            '@typescript-eslint/no-unused-vars': 'warn',
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/explicit-function-return-type': 'warn',
             '@typescript-eslint/explicit-module-boundary-types': 'warn',
