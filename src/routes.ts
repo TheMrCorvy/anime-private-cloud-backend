@@ -27,7 +27,7 @@ router.post('/api/serve-anime-episode', async (req: Request, res: Response) => {
     const range = req.headers.range || null;
 
     if (!filePath) {
-        return res.status(400).json({ message: 'Missing videoSrc in request body.' });
+        return res.status(400).json({ message: 'Missing file path in request body.' });
     }
 
     const { stream, headers, status, message, error } = serveVideoFileService({ videoSrc: filePath, range });
