@@ -17,7 +17,8 @@
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",
         "api-key:generate": "ts-node scripts/generateApiKey.ts",
-        "prepare": "husky install"
+        "prepare": "husky install",
+        "initialize-db": "ts-node scripts/initializeDatabase.ts"
     },
     "keywords": [],
     "author": "",
