@@ -1,31 +1,48 @@
 import fs from 'fs';
 import path from 'path';
+import { Directory } from '../utils/typesDefinition';
 
-interface FolderContent {
-    folderName: string;
-    folderPath: string;
-    mp4Files: string[];
-}
-
-export function getFoldersWithMp4Files(dirPath: string): FolderContent[] {
+export const scanSingleFolder = (dirPath: string): Directory => {
     const items = fs.readdirSync(dirPath, { withFileTypes: true });
-    const results: FolderContent[] = [];
+
+    const result: Directory = {
+        display_name: path.basename(dirPath),
+        directory_path: dirPath,
+        adult: determineIfFolderIsAdult(path.basename(dirPath)),
+        parent_directory: checkIfParentDirectoryExists(dirPath),
+        sub_directories: [],
+        anime_episodes: [],
+    };
 
     for (const item of items) {
         if (item.isDirectory()) {
-            const fullFolderPath = path.join(dirPath, item.name);
-            const subItems = fs.readdirSync(fullFolderPath);
-            const mp4Files = subItems.filter(file => file.endsWith('.mkv') && !file.startsWith('._'));
-
-            results.push({
-                folderName: item.name,
-                folderPath: fullFolderPath,
-                mp4Files,
+            result.sub_directories.push(path.join(dirPath, item.name));
+        } else {
+            result.anime_episodes.push({
+                display_name: item.name,
+                file_path: path.join(dirPath, item.name),
+                parent_directory: result,
             });
         }
     }
 
-    return results;
-}
+    return result;
+};
 
-// Example usage
+const determineIfFolderIsAdult = (folderName: string): boolean => {
+    return folderName.split(' ')[0] === '*';
+};
+
+const checkIfParentDirectoryExists = (directoryPath: string): string => {
+    const parentDirectory = getParentDirectoryPath(directoryPath);
+    return parentDirectory === 'pendientes' || parentDirectory === 'Pendientes de procesamiento' ? '' : parentDirectory;
+};
+
+const getParentDirectoryPath = (directoryPath: string): string => {
+    const parts = directoryPath.split('/');
+    parts.pop();
+
+    const excludedDirectories = ['pendientes', 'Pendientes de procesamiento'];
+
+    return excludedDirectories.includes(parts[parts.length - 1]) ? '' : parts.join('/');
+};

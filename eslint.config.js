@@ -34,7 +34,7 @@ module.exports = [
         },
         rules: {
             ...tsPlugin.configs.recommended.rules,
-            'prettier/prettier': 'error',
+            'prettier/prettier': 'warn',
             '@typescript-eslint/no-unused-vars': 'warn',
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/explicit-function-return-type': 'warn',
@@ -44,6 +44,7 @@ module.exports = [
             'prefer-const': 'error',
             eqeqeq: ['error', 'always'],
             'no-console': 'off',
+            'no-empty': 'off',
         },
     },
     prettierConfig,
