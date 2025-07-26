@@ -30,11 +30,12 @@ export const scanSingleFolder = (dirPath: string): Directory => {
 };
 
 const determineIfFolderIsAdult = (folderName: string): boolean => {
-    return folderName.split(' ')[0] === '*';
+    return folderName.split(' ')[0] === '*'; // "*" at the beggining of the folder name indicates adult content
 };
 
 const checkIfParentDirectoryExists = (directoryPath: string): string => {
     const parentDirectory = getParentDirectoryPath(directoryPath);
+    // Animes that are still pending processing don't count as having a parent folder
     return parentDirectory === 'pendientes' || parentDirectory === 'Pendientes de procesamiento' ? '' : parentDirectory;
 };
 
