@@ -34,7 +34,9 @@ const main = () => {
 
     while (pendingToScan.length > 0) {
         pendingToScan.forEach(dirPath => {
-            pendingToScan.shift();
+            const folderToRemoveFromPending = pendingToScan.indexOf(dirPath);
+            pendingToScan.splice(folderToRemoveFromPending, 1);
+
             const scannedData = scanSingleFolder(dirPath);
             finalResult.push(scannedData);
             pendingToScan.push(...scannedData.sub_directories);
