@@ -2,21 +2,6 @@ import { scanSingleFolder, writeJsonFile } from '../src/services/diskService';
 import dotenv from 'dotenv';
 import { Directory } from '../src/utils/typesDefinition';
 
-import fs from 'fs';
-import path from 'path';
-
-interface FolderNode {
-    name: string;
-    path: string;
-    children: FolderNode[];
-}
-
-interface FlatFolder {
-    name: string;
-    path: string;
-    parent: string | null;
-}
-
 const main = () => {
     dotenv.config();
     const initiumIter = process.env.INITIAL_PATH || '';
