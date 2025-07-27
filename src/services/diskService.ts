@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Directory } from '../utils/typesDefinition';
 
-export const scanSingleFolder = (dirPath: string): Directory => {
+export const scanSingleFolder = (dirPath: string, excludedParents: string[]): Directory => {
     const items = fs.readdirSync(dirPath, { withFileTypes: true });
 
     const folderIsAdult = determineIfFolderIsAdult(path.basename(dirPath));
@@ -12,7 +12,7 @@ export const scanSingleFolder = (dirPath: string): Directory => {
         display_name: displayName,
         directory_path: dirPath,
         adult: folderIsAdult,
-        parent_directory: checkIfParentDirectoryExists(dirPath),
+        parent_directory: checkIfParentDirectoryExists(dirPath, excludedParents),
         sub_directories: [],
         anime_episodes: [],
     };
@@ -49,19 +49,18 @@ const determineIfFolderIsAdult = (folderName: string): boolean => {
     return folderName.split(' ')[0] === '*'; // "*" at the beggining of the folder name indicates adult content
 };
 
-const checkIfParentDirectoryExists = (directoryPath: string): string => {
-    const parentDirectory = getParentDirectoryPath(directoryPath);
+const checkIfParentDirectoryExists = (directoryPath: string, excludedParents: string[]): string => {
+    const parentDirectory = getParentDirectoryPath(directoryPath, excludedParents);
+
     // Animes that are still pending processing don't count as having a parent folder
-    return parentDirectory === 'pendientes' || parentDirectory === 'Pendientes de procesamiento' ? '' : parentDirectory;
+    return excludedParents.includes(parentDirectory) ? '' : parentDirectory;
 };
 
-const getParentDirectoryPath = (directoryPath: string): string => {
+const getParentDirectoryPath = (directoryPath: string, excludedParents: string[]): string => {
     const parts = directoryPath.split('/');
     parts.pop();
 
-    const excludedDirectories = ['pendientes', 'Pendientes de procesamiento', 'Anime'];
-
-    return excludedDirectories.includes(parts[parts.length - 1]) ? '' : parts.join('/');
+    return excludedParents.includes(parts[parts.length - 1]) ? '' : parts.join('/');
 };
 
 interface JsonFileParams {
