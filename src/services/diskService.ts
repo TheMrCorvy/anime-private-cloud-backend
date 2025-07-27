@@ -2,7 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import { Directory } from '../utils/typesDefinition';
 
-export const scanSingleFolder = (dirPath: string, excludedParents: string[]): Directory => {
+interface ScanSingleFolderParams {
+    dirPath: string;
+    excludedParents: string[];
+    excludedFileExtensions: string[];
+}
+
+export const scanSingleFolder = ({
+    dirPath,
+    excludedParents,
+    excludedFileExtensions,
+}: ScanSingleFolderParams): Directory => {
     const items = fs.readdirSync(dirPath, { withFileTypes: true });
 
     const folderIsAdult = determineIfFolderIsAdult(path.basename(dirPath));
@@ -20,7 +30,7 @@ export const scanSingleFolder = (dirPath: string, excludedParents: string[]): Di
     for (const item of items) {
         if (item.isDirectory()) {
             result.sub_directories.push(path.join(dirPath, item.name));
-        } else if (item.isFile() && !animeEpisodeShouldBeIgnored(item.name)) {
+        } else if (item.isFile() && !episodeShouldBeIgnored(item.name, excludedFileExtensions)) {
             result.anime_episodes.push({
                 display_name: item.name,
                 file_path: path.join(dirPath, item.name),
@@ -36,11 +46,10 @@ const removeAsteriskFromFolderName = (folderName: string): string => {
     return folderName.startsWith('* ') ? folderName.slice(2) : folderName;
 };
 
-const animeEpisodeShouldBeIgnored = (fileName: string): boolean => {
-    const ignoredExtensions = ['.mkv'];
+const episodeShouldBeIgnored = (fileName: string, excludedExtensions: string[]): boolean => {
     const ignoredPrefixes = ['.', '._', 'Thumbs.db', 'desktop.ini'];
     return (
-        ignoredExtensions.some(ext => fileName.endsWith(ext)) ||
+        excludedExtensions.some(ext => fileName.endsWith(ext)) ||
         ignoredPrefixes.some(prefix => fileName.startsWith(prefix))
     );
 };
