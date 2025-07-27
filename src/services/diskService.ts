@@ -31,7 +31,11 @@ export const scanSingleFolder = (dirPath: string): Directory => {
 
 const animeEpisodeShouldBeIgnored = (fileName: string): boolean => {
     const ignoredExtensions = ['.mkv'];
-    return ignoredExtensions.some(ext => fileName.endsWith(ext)) || fileName.startsWith('._');
+    const ignoredPrefixes = ['.', '._', 'Thumbs.db', 'desktop.ini'];
+    return (
+        ignoredExtensions.some(ext => fileName.endsWith(ext)) ||
+        ignoredPrefixes.some(prefix => fileName.startsWith(prefix))
+    );
 };
 
 const determineIfFolderIsAdult = (folderName: string): boolean => {
@@ -53,7 +57,13 @@ const getParentDirectoryPath = (directoryPath: string): string => {
     return excludedDirectories.includes(parts[parts.length - 1]) ? '' : parts.join('/');
 };
 
-export const writeJsonFile = (outputFolderPath: string, data: Directory[]): void => {
+interface JsonFileParams {
+    outputFolderPath: string;
+    data: Directory[] | string[] | Record<string, string[]>;
+    fileName: string;
+}
+
+export const writeJsonFile = ({ outputFolderPath, data, fileName }: JsonFileParams): void => {
     if (!fs.existsSync(outputFolderPath)) {
         fs.mkdirSync(outputFolderPath, { recursive: true });
     }
@@ -64,7 +74,7 @@ export const writeJsonFile = (outputFolderPath: string, data: Directory[]): void
         fs.mkdirSync(fullFolderPath, { recursive: true });
     }
 
-    const jsonPath = path.join(fullFolderPath, 'db.json');
+    const jsonPath = path.join(fullFolderPath, fileName + '.json');
     fs.writeFileSync(jsonPath, JSON.stringify(data), 'utf-8');
 
     console.log(`✔ JSON written to: ${jsonPath}`);
