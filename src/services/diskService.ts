@@ -5,10 +5,13 @@ import { Directory } from '../utils/typesDefinition';
 export const scanSingleFolder = (dirPath: string): Directory => {
     const items = fs.readdirSync(dirPath, { withFileTypes: true });
 
+    const folderIsAdult = determineIfFolderIsAdult(path.basename(dirPath));
+    const displayName = !folderIsAdult ? path.basename(dirPath) : removeAsteriskFromFolderName(path.basename(dirPath));
+
     const result: Directory = {
-        display_name: path.basename(dirPath),
+        display_name: displayName,
         directory_path: dirPath,
-        adult: determineIfFolderIsAdult(path.basename(dirPath)),
+        adult: folderIsAdult,
         parent_directory: checkIfParentDirectoryExists(dirPath),
         sub_directories: [],
         anime_episodes: [],
@@ -27,6 +30,10 @@ export const scanSingleFolder = (dirPath: string): Directory => {
     }
 
     return result;
+};
+
+const removeAsteriskFromFolderName = (folderName: string): string => {
+    return folderName.startsWith('* ') ? folderName.slice(2) : folderName;
 };
 
 const animeEpisodeShouldBeIgnored = (fileName: string): boolean => {
