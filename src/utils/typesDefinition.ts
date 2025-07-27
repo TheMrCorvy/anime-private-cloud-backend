@@ -10,5 +10,5 @@ export interface Directory {
 export interface AnimeEpisode {
     display_name: string;
     file_path: string;
-    parent_directory: Directory;
+    parent_directory: string;
 }
