@@ -59,7 +59,7 @@ const getParentDirectoryPath = (directoryPath: string): string => {
 
 interface JsonFileParams {
     outputFolderPath: string;
-    data: Directory[] | string[] | Record<string, string[]> | any;
+    data: Directory[] | string[] | Record<string, string[]>;
     fileName: string;
 }
 
