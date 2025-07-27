@@ -20,7 +20,6 @@ const main = () => {
         excludedFileExtensions: excludedExtensions,
     });
     const pendingToScan: string[] = data.sub_directories;
-
     const finalResult: Directory[] = [];
 
     while (pendingToScan.length > 0) {
