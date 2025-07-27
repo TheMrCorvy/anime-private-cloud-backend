@@ -28,71 +28,21 @@ const main = () => {
     }
 
     const data = scanSingleFolder(initiumIter);
-
-    writeJsonFile({ outputFolderPath, data: [data], fileName: 'initium_iter' });
-    writeJsonFile({ outputFolderPath, data: { pending_to_scan: data.sub_directories }, fileName: 'pending_to_scan' });
+    const pendingToScan: string[] = data.sub_directories;
 
     const finalResult: Directory[] = [];
 
-    data.sub_directories.forEach(subDir => {
-        const scannedData = scanSingleFolder(subDir);
-        finalResult.push(scannedData);
-    });
-
-    writeJsonFile({ outputFolderPath, data: finalResult, fileName: '1_level_scan' });
-
-    const rootNode: FolderNode = {
-        name: path.basename(initiumIter),
-        path: initiumIter,
-        children: [],
-    };
-
-    const queue: { dirPath: string; node: FolderNode }[] = [{ dirPath: initiumIter, node: rootNode }];
-
-    while (queue.length > 0) {
-        const { dirPath, node } = queue.shift()!;
-
-        const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-
-        for (const entry of entries) {
-            if (entry.isDirectory()) {
-                const childPath = path.join(dirPath, entry.name);
-                const childNode: FolderNode = {
-                    name: entry.name,
-                    path: childPath,
-                    children: [],
-                };
-                node.children.push(childNode);
-                queue.push({ dirPath: childPath, node: childNode });
-            }
-        }
+    while (pendingToScan.length > 0) {
+        pendingToScan.forEach(dirPath => {
+            pendingToScan.shift();
+            const scannedData = scanSingleFolder(dirPath);
+            finalResult.push(scannedData);
+            pendingToScan.push(...scannedData.sub_directories);
+        });
     }
 
-    function flattenFolderTreeToArray(root: FolderNode): FlatFolder[] {
-        const result: FlatFolder[] = [];
-        const stack: { node: FolderNode; parent: string | null }[] = [{ node: root, parent: null }];
-
-        while (stack.length > 0) {
-            const { node, parent } = stack.pop()!;
-            result.push({
-                name: node.name,
-                path: node.path,
-                parent: parent,
-            });
-
-            for (const child of node.children) {
-                stack.push({ node: child, parent: node.path });
-            }
-        }
-
-        return result;
-    }
-
-    writeJsonFile({
-        outputFolderPath,
-        data: flattenFolderTreeToArray(rootNode),
-        fileName: 'folder_structure',
-    });
+    writeJsonFile({ outputFolderPath, data: [data], fileName: 'initium_iter' });
+    writeJsonFile({ outputFolderPath, data: finalResult, fileName: 'full_scan' });
 };
 
 if (require.main === module) {
