@@ -113,8 +113,166 @@ const main = async () => {
     console.log('- - - - - - - - - - - - -');
     console.log(' ');
 
+    const filteredDirectories = finalDirectoryResult.filter(
+        dir => !directoriesData.some(existingDir => existingDir.directory_path === dir.directory_path)
+    );
+    const filteredAnimeEpisodes = finalAnimeEpisodeResult.filter(
+        episode => !animeEpisodesData.some(existingEpisode => existingEpisode.file_path === episode.file_path)
+    );
+
     console.log('- - - - - - - - - - - - -');
-    console.log('Uploading filtered directories and anime episodes to Strapi...');
+    console.log('Uploading filtered directories to Strapi...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
+    let uploadedDirectories: DirectoryResponseStrapi[] = [];
+
+    if (filteredDirectories.length > 0) {
+        writeJsonFile({
+            outputFolderPath,
+            data: filteredDirectories,
+            fileName: 'filtered_directories',
+        });
+
+        try {
+            const uploadDirectoriesResponse = await fetch(`${strapiBaseUrl}/api/directories/bulk`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + strapiApiKey,
+                },
+                method: 'POST',
+                body: JSON.stringify({ data: filteredDirectories.map(dir => ({ ...dir, parent_directory: null })) }),
+            });
+
+            if (!uploadDirectoriesResponse.ok) {
+                throw new Error('Failed to upload directories');
+            }
+
+            uploadedDirectories = (await uploadDirectoriesResponse.json()) as DirectoryResponseStrapi[];
+            console.log('Directories uploaded successfully.');
+        } catch (error) {
+            console.error('Error uploading directories:', error);
+            return;
+        }
+    }
+
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log(
+        "Getting IDs from strapi response and patching the directories that have a parent that isn't present on strapi..."
+    );
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
+    interface DirectoriesToUpdate {
+        id: number;
+        parent_directory: number | null;
+    }
+    const filteredDirectoriesWithParent: DirectoriesToUpdate[] = [];
+
+    filteredDirectories.forEach(localDir => {
+        if (!localDir.parent_directory) {
+            return;
+        }
+
+        const foundStrapiDir = uploadedDirectories.find(
+            strapiDir => strapiDir.directory_path === localDir.directory_path
+        );
+
+        if (!foundStrapiDir) {
+            throw new Error(`Directory not found in Strapi: ${localDir.directory_path}`);
+        }
+
+        localDir.id = foundStrapiDir.id;
+
+        const findParent = uploadedDirectories.find(
+            strapiDir => strapiDir.directory_path === localDir.parent_directory
+        );
+
+        if (!findParent) {
+            throw new Error(`Parent directory not found in Strapi: ${localDir.parent_directory}`);
+        }
+
+        localDir.parent_directory = findParent ? findParent.id.toString() : null;
+        filteredDirectoriesWithParent.push({
+            id: localDir.id,
+            parent_directory: findParent.id,
+        });
+    });
+
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log('Adding the parent directories property to the directories that need it in strapi...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
+    if (filteredDirectoriesWithParent.length > 0) {
+        try {
+            const patchDirectoriesResponse = await fetch(`${strapiBaseUrl}/api/directories/bulk`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + strapiApiKey,
+                },
+                method: 'PATCH',
+                body: JSON.stringify({ data: filteredDirectoriesWithParent }),
+            });
+
+            if (!patchDirectoriesResponse.ok) {
+                throw new Error('Failed to patch directories');
+            }
+
+            console.log('Directories patched successfully.');
+        } catch (error) {
+            console.error('Error patching directories:', error);
+        }
+    }
+
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log('Uploading anime episodes to Strapi...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
+    if (filteredAnimeEpisodes.length > 0) {
+        try {
+            const directoriesStored = await fetch(`${strapiBaseUrl}/api/directories/all`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + strapiApiKey,
+                },
+                method: 'GET',
+            });
+            directoriesData = (await directoriesStored.json()) as DirectoryResponseStrapi[];
+
+            const uploadAnimeEpisodesResponse = await fetch(`${strapiBaseUrl}/api/anime-episodes/bulk`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + strapiApiKey,
+                },
+                method: 'POST',
+                body: JSON.stringify({
+                    data: filteredAnimeEpisodes.map(animeEpisode => ({
+                        ...animeEpisode,
+                        parent_directory:
+                            directoriesData.find(dir => dir.directory_path === animeEpisode.parent_directory)?.id ||
+                            null,
+                    })),
+                }),
+            });
+
+            if (!uploadAnimeEpisodesResponse.ok) {
+                throw new Error('Failed to upload anime episodes');
+            }
+
+            console.log('Anime episodes uploaded successfully.');
+        } catch (error) {
+            console.error('Error uploading anime episodes:', error);
+        }
+    }
+
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log('Database initialized successfully!');
     console.log('- - - - - - - - - - - - -');
     console.log(' ');
 };
