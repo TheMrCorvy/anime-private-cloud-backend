@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Directory } from '../utils/typesDefinition';
+import { AnimeEpisode, Directory } from '../utils/typesDefinition';
 
 interface ScanSingleFolderParams {
     dirPath: string;
@@ -69,7 +69,7 @@ const getParentDirectoryPath = (directoryPath: string, excludedParents: string[]
 
 interface JsonFileParams {
     outputFolderPath: string;
-    data: Directory[] | string[] | Record<string, string[]>;
+    data: Directory[] | AnimeEpisode[];
     fileName: string;
 }
 
