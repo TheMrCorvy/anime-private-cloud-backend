@@ -13,17 +13,26 @@ const main = async () => {
     const outputFolderPath = './db';
     const excludedParents = process.env.EXCLUDED_PARENTS ? JSON.parse(process.env.EXCLUDED_PARENTS) : [];
     const excludedExtensions = process.env.EXCLUDED_EXTENSIONS ? JSON.parse(process.env.EXCLUDED_EXTENSIONS) : [];
+    const strapiBaseUrl = process.env.STRAPI_API_HOST;
+    const strapiApiKey = process.env.STRAPI_API_KEY;
 
-    if (!initiumIter) {
-        console.error('INITIAL_PATH environment variable is not set.');
+    if (!initiumIter || !strapiBaseUrl || !strapiApiKey || !excludedExtensions || !excludedParents) {
+        console.error('Environment variables are not set.');
         return;
     }
+
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log('Environment variables set. Proceeding with database initialization...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
 
     const data = scanSingleFolder({
         dirPath: initiumIter,
         excludedParents,
         excludedFileExtensions: excludedExtensions,
     });
+
     const pendingToScan: string[] = data.sub_directories;
     const finalDirectoryResult: Directory[] = [];
     const finalAnimeEpisodeResult: AnimeEpisode[] = [];
@@ -46,18 +55,24 @@ const main = async () => {
         });
     }
 
+    console.log('- - - - - - - - - - - - -');
+    console.log('Scanned all directories for root folder. Now writting into json db...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
     writeJsonFile({ outputFolderPath, data: [data], fileName: 'initium_iter' });
     writeJsonFile({ outputFolderPath, data: finalDirectoryResult, fileName: 'directories' });
     writeJsonFile({ outputFolderPath, data: finalAnimeEpisodeResult, fileName: 'anime_episodes' });
     writeJsonFile({ outputFolderPath, data: finalResult, fileName: 'full_data' });
 
-    const strapiBaseUrl = process.env.STRAPI_API_HOST;
-    const strapiApiKey = process.env.STRAPI_API_KEY;
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log('Json db written. Calling Strapi to get already existing Drirectories and Anime Episodes...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
 
-    if (!strapiBaseUrl || !strapiApiKey) {
-        console.error('STRAPI_API_HOST or STRAPI_API_KEY environment variable is not set.');
-        return;
-    }
+    let directoriesData: DirectoryResponseStrapi[] = [];
+    let animeEpisodesData: AnimeEpisodeResponseStrapi[] = [];
 
     try {
         const directoriesResponse = await fetch(`${strapiBaseUrl}/api/directories/all`, {
@@ -67,10 +82,6 @@ const main = async () => {
             },
             method: 'GET',
         });
-        const directoriesData = (await directoriesResponse.json()) as DirectoryResponseStrapi[];
-        writeJsonFile({ outputFolderPath, data: directoriesData, fileName: 'strapi_directories' });
-        console.log('Strapi directories data written to strapi_directories.json');
-
         const animeEpisodesResponse = await fetch(`${strapiBaseUrl}/api/anime-episodes/all`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -78,12 +89,34 @@ const main = async () => {
             },
             method: 'GET',
         });
-        const animeEpisodesData = (await animeEpisodesResponse.json()) as AnimeEpisodeResponseStrapi[];
+
+        console.log('- - - - - - - - - - - - -');
+        console.log('Writting Strapi response into json db...');
+        console.log('- - - - - - - - - - - - -');
+        console.log(' ');
+
+        directoriesData = (await directoriesResponse.json()) as DirectoryResponseStrapi[];
+        writeJsonFile({ outputFolderPath, data: directoriesData, fileName: 'strapi_directories' });
+        console.log('Strapi directories data written to strapi_directories.json');
+
+        animeEpisodesData = (await animeEpisodesResponse.json()) as AnimeEpisodeResponseStrapi[];
         writeJsonFile({ outputFolderPath, data: animeEpisodesData, fileName: 'strapi_anime_episodes' });
         console.log('Strapi anime episodes data written to strapi_anime_episodes.json');
     } catch (error) {
         console.error('Error fetching data from Strapi:', error);
+        return;
     }
+
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log('Contrasting local files and folders against strapi data...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
+    console.log('- - - - - - - - - - - - -');
+    console.log('Uploading filtered directories and anime episodes to Strapi...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
 };
 
 if (require.main === module) {
