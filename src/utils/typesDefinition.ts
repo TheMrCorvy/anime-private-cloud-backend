@@ -14,3 +14,26 @@ export interface AnimeEpisode {
     parent_directory: string;
     id: number;
 }
+
+export interface DirectoryResponseStrapi {
+    id: number;
+    display_name: string;
+    directory_path: string;
+    createdAt: Date;
+    updatedAt: Date;
+    adult: boolean;
+    documentId: string;
+    locale: null | string;
+    publishedAt: Date | null;
+}
+
+export interface AnimeEpisodeResponseStrapi {
+    id: number;
+    display_name: string;
+    file_path: string;
+    createdAt: Date;
+    updatedAt: Date;
+    documentId: string;
+    locale: string | null;
+    publishedAt: Date | null;
+}
