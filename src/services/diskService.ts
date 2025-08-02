@@ -25,6 +25,7 @@ export const scanSingleFolder = ({
         parent_directory: getParentDirectoryPath(dirPath, excludedParents),
         sub_directories: [],
         anime_episodes: [],
+        id: 0, // Placeholder for ID, will be set after calling strapi
     };
 
     for (const item of items) {
@@ -35,6 +36,7 @@ export const scanSingleFolder = ({
                 display_name: item.name,
                 file_path: path.join(dirPath, item.name),
                 parent_directory: dirPath,
+                id: 0, // Placeholder for ID, will be set after calling strapi
             });
         }
     }
