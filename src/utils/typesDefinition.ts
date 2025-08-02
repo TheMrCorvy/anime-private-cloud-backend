@@ -2,7 +2,7 @@ export interface Directory {
     display_name: string;
     directory_path: string;
     adult: boolean;
-    parent_directory: string;
+    parent_directory: string | null;
     sub_directories: string[];
     anime_episodes: AnimeEpisode[];
 }
