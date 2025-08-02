@@ -25,6 +25,7 @@ module.exports = [
                 module: 'readonly',
                 require: 'readonly',
                 exports: 'readonly',
+                fetch: false,
                 NodeJS: true,
             },
         },
