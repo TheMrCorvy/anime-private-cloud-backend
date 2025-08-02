@@ -8,7 +8,7 @@ export const uploadDirectory = async (directory: Directory): Promise<DirectoryRe
         throw new Error('Strapi base URL or API key is not set in environment variables.');
     }
 
-    const response = await fetch(`${strapiBaseUrl}/directories`, {
+    const response = await fetch(`${strapiBaseUrl}/api/directories`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ export const uploadBulkAnimeEpisodes = async (
         throw new Error('Strapi base URL or API key is not set in environment variables.');
     }
 
-    const response = await fetch(`${strapiBaseUrl}/anime-episodes/bulk`, {
+    const response = await fetch(`${strapiBaseUrl}/api/anime-episodes/bulk`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export const getAllDirectories = async (): Promise<DirectoryResponseStrapi[]> =>
         throw new Error('Strapi base URL or API key is not set in environment variables.');
     }
 
-    const response = await fetch(`${strapiBaseUrl}/directories/all`, {
+    const response = await fetch(`${strapiBaseUrl}/api/directories/all`, {
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${strapiApiKey}`,
@@ -90,7 +90,7 @@ export const getAllAnimeEpisodes = async (): Promise<AnimeEpisodeResponseStrapi[
         throw new Error('Strapi base URL or API key is not set in environment variables.');
     }
 
-    const response = await fetch(`${strapiBaseUrl}/anime-episodes/all`, {
+    const response = await fetch(`${strapiBaseUrl}/api/anime-episodes/all`, {
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${strapiApiKey}`,
