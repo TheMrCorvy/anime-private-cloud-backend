@@ -26,6 +26,9 @@ export interface DirectoryResponseStrapi {
     documentId: string;
     locale: null | string;
     publishedAt: Date | null;
+    parent_directory?: number;
+    sub_directories?: number[];
+    anime_episodes?: number[];
 }
 
 export interface AnimeEpisodeResponseStrapi {
@@ -37,4 +40,5 @@ export interface AnimeEpisodeResponseStrapi {
     documentId: string;
     locale: string | null;
     publishedAt: Date | null;
+    parent_directory?: number;
 }
