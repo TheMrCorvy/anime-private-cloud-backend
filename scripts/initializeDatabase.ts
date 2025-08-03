@@ -1,11 +1,6 @@
 import { scanSingleFolder, writeJsonFile } from '../src/services/diskService';
 import dotenv from 'dotenv';
-import {
-    AnimeEpisode,
-    AnimeEpisodeResponseStrapi,
-    Directory,
-    DirectoryResponseStrapi,
-} from '../src/utils/typesDefinition';
+import { AnimeEpisodeResponseStrapi, Directory, DirectoryResponseStrapi } from '../src/utils/typesDefinition';
 
 import {
     getAllDirectories,
@@ -45,7 +40,7 @@ const main = async () => {
     const finalResult: Directory[] = [];
 
     while (pendingToScan.length > 0) {
-        pendingToScan.forEach(dirPath => {
+        for (const dirPath of pendingToScan) {
             const folderToRemoveFromPending = pendingToScan.indexOf(dirPath);
             pendingToScan.splice(folderToRemoveFromPending, 1);
 
@@ -55,9 +50,11 @@ const main = async () => {
                 excludedFileExtensions: excludedExtensions,
             });
 
-            finalResult.push(scannedData);
+            if (scannedData.display_name !== 'Pendientes') {
+                finalResult.push(scannedData);
+            }
             pendingToScan.push(...scannedData.sub_directories);
-        });
+        }
     }
 
     console.log('- - - - - - - - - - - - -');
