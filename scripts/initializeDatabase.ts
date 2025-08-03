@@ -106,8 +106,9 @@ const main = async () => {
     console.log('- - - - - - - - - - - - -');
     console.log(' ');
 
-    const pendingDirectories = sortDirectories(filteredDirectories);
+    const pendingDirectories = sortDirectories([...filteredDirectories]);
     const directoriesInStrapi = [...directoriesData];
+    const failedDirectories: Directory[] = [];
 
     for (let index = pendingDirectories.length - 1; index >= 0; index--) {
         const pendingDirectory = pendingDirectories[index];
@@ -152,8 +153,29 @@ const main = async () => {
         }
 
         const updatedDir = await updateDirectory(directoryToUpdate);
-        directoriesInStrapi.push({ ...uploadedDir, ...updatedDir });
+        if (!parentDirExists && pendingDirectory.parent_directory) {
+            failedDirectories.push(pendingDirectory);
+        } else {
+            directoriesInStrapi.push({ ...uploadedDir, ...updatedDir });
+        }
         pendingDirectories.splice(index, 1);
+    }
+
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log('Finished iterating through the array of directories.');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
+    if (failedDirectories.length > 0) {
+        writeJsonFile({ outputFolderPath, data: failedDirectories, fileName: 'failed_directories' });
+        console.log(' ');
+        console.log('- - - - - - - - - - - - -');
+        console.log(
+            'Some directories have failed to upload. You may want to take a look into ./db/failed_diretories.json'
+        );
+        console.log('- - - - - - - - - - - - -');
+        console.log(' ');
     }
 };
 

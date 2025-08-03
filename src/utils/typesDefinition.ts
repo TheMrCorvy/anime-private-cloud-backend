@@ -6,7 +6,6 @@ export interface Directory {
     sub_directories: string[];
     anime_episodes: AnimeEpisode[];
     id: number;
-    numberOfAttempts?: number;
 }
 
 export interface AnimeEpisode {
