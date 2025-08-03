@@ -14,7 +14,66 @@ export const uploadDirectory = async (directory: Directory): Promise<DirectoryRe
             'Content-Type': 'application/json',
             Authorization: `Bearer ${strapiApiKey}`,
         },
-        body: JSON.stringify({ data: directory }),
+        body: JSON.stringify({
+            data: {
+                display_name: directory.display_name,
+                directory_path: directory.directory_path,
+                adult: directory.adult,
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to upload directory: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as DirectoryResponseStrapi;
+
+    return data;
+};
+
+export interface DirectoryUpdate {
+    anime_episodes?: number[];
+    parent_directory?: number;
+    sub_directoryes?: number[];
+    directoryDocumentId: string;
+    display_name: string;
+}
+
+export const updateDirectory = async (directory: DirectoryUpdate): Promise<DirectoryResponseStrapi> => {
+    const strapiBaseUrl = process.env.STRAPI_API_HOST;
+    const strapiApiKey = process.env.STRAPI_API_KEY;
+    const directoryToUpdate: Record<string, number | number[]> = {};
+
+    if (!strapiBaseUrl || !strapiApiKey) {
+        throw new Error('Strapi base URL or API key is not set in environment variables.');
+    }
+
+    if (directory.anime_episodes && directory.anime_episodes.length > 0) {
+        directoryToUpdate.anime_episodes = directory.anime_episodes;
+    }
+
+    if (directory.parent_directory !== undefined) {
+        directoryToUpdate.parent_directory = directory.parent_directory;
+    }
+
+    if (directory.sub_directoryes && directory.sub_directoryes.length > 0) {
+        directoryToUpdate.sub_directoryes = directory.sub_directoryes;
+    }
+
+    if (Object.keys(directoryToUpdate).length === 0) {
+        console.log('Nothing to update. ' + directory.display_name);
+    }
+
+    const response = await fetch(`${strapiBaseUrl}/api/directories/${directory.directoryDocumentId}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${strapiApiKey}`,
+        },
+        body: JSON.stringify({
+            data: directoryToUpdate,
+        }),
     });
 
     if (!response.ok) {
