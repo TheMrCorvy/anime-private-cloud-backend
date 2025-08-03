@@ -9,11 +9,15 @@ const normalize = (path: string): string => path.replace(/\\/g, '/');
 const sortDirectories = (directories: Directory[]): Directory[] => {
     const pendingToSort = directories.map(dir => ({ ...dir, parent_directory: dir.parent_directory || '' }));
     return pendingToSort.sort((directoryA, directoryB) => {
-        const normalizedA = normalize(directoryA.parent_directory).split('/');
+        const normalizedA = normalize(directoryA.parent_directory).split('/').filter(Boolean).length;
 
-        const normalizedB = normalize(directoryB.parent_directory).split('/');
+        const normalizedB = normalize(directoryB.parent_directory).split('/').filter(Boolean).length;
 
-        return normalizedA.length - normalizedB.length;
+        if (normalizedA !== normalizedB) {
+            return normalizedA - normalizedB; // Sort by depth first
+        }
+
+        return directoryA.parent_directory.localeCompare(directoryB.parent_directory);
     });
 };
 
