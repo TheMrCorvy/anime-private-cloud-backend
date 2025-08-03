@@ -2,6 +2,8 @@ import { scanSingleFolder, writeJsonFile } from '../src/services/diskService';
 import dotenv from 'dotenv';
 import { AnimeEpisodeResponseStrapi, Directory, DirectoryResponseStrapi } from '../src/utils/typesDefinition';
 
+import sortDirectories from '../src/utils/sortDirectories';
+
 import {
     getAllDirectories,
     getAllAnimeEpisodes,
@@ -100,11 +102,11 @@ const main = async () => {
 
     console.log(' ');
     console.log('- - - - - - - - - - - - -');
-    console.log('Uploading Parent-less directories first...');
+    console.log('Uploading Parent-less directories first, then the folders that do have a parent...');
     console.log('- - - - - - - - - - - - -');
     console.log(' ');
 
-    const pendingDirectories = [...filteredDirectories];
+    const pendingDirectories = sortDirectories(filteredDirectories);
     const directoriesInStrapi = [...directoriesData];
 
     for (let index = pendingDirectories.length - 1; index >= 0; index--) {
@@ -139,6 +141,14 @@ const main = async () => {
 
         if (uploadedAnimeEpisodes.length > 0) {
             directoryToUpdate.anime_episodes = uploadedAnimeEpisodes.map(animeEpisode => animeEpisode.id);
+        }
+
+        const parentDirExists = directoriesInStrapi.find(
+            dir => dir.directory_path === pendingDirectory.parent_directory
+        );
+
+        if (parentDirExists) {
+            directoryToUpdate.parent_directory = parentDirExists.id;
         }
 
         const updatedDir = await updateDirectory(directoryToUpdate);
