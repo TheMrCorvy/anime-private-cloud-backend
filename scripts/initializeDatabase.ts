@@ -12,6 +12,8 @@ import {
     getAllAnimeEpisodes,
     uploadDirectory,
     uploadBulkAnimeEpisodes,
+    DirectoryUpdate,
+    updateDirectory,
 } from '../src/services/strapiService';
 
 const main = async () => {
@@ -98,6 +100,54 @@ const main = async () => {
         data: filteredDirectories,
         fileName: 'pending_to_upload',
     });
+
+    console.log(' ');
+    console.log('- - - - - - - - - - - - -');
+    console.log('Uploading Parent-less directories first...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
+    const pendingDirectories = [...filteredDirectories];
+    const directoriesInStrapi = [...directoriesData];
+
+    for (let index = pendingDirectories.length - 1; index >= 0; index--) {
+        const pendingDirectory = pendingDirectories[index];
+
+        if (pendingDirectory.parent_directory) continue;
+
+        const uploadedDir = await uploadDirectory(pendingDirectory);
+
+        if (!uploadedDir.documentId) {
+            throw new Error(`There was a problem uploading the directory ${pendingDirectory.display_name}.`);
+        }
+
+        if (
+            !(pendingDirectory.anime_episodes.length > 0) &&
+            !pendingDirectory.parent_directory &&
+            !(pendingDirectory.sub_directories.length > 0)
+        ) {
+            continue;
+        }
+
+        let uploadedAnimeEpisodes: AnimeEpisodeResponseStrapi[] = [];
+
+        if (pendingDirectory.anime_episodes.length > 0) {
+            uploadedAnimeEpisodes = await uploadBulkAnimeEpisodes(pendingDirectory.anime_episodes, uploadedDir.id);
+        }
+
+        const directoryToUpdate: DirectoryUpdate = {
+            directoryDocumentId: uploadedDir.documentId,
+            display_name: pendingDirectory.display_name,
+        };
+
+        if (uploadedAnimeEpisodes.length > 0) {
+            directoryToUpdate.anime_episodes = uploadedAnimeEpisodes.map(animeEpisode => animeEpisode.id);
+        }
+
+        const updatedDir = await updateDirectory(directoryToUpdate);
+        directoriesInStrapi.push({ ...uploadedDir, ...updatedDir });
+        pendingDirectories.splice(index, 1);
+    }
 };
 
 if (require.main === module) {
