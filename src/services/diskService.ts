@@ -32,7 +32,7 @@ export const scanSingleFolder = ({
             result.sub_directories.push(path.join(dirPath, item.name));
         } else if (item.isFile() && !episodeShouldBeIgnored(item.name, excludedFileExtensions)) {
             result.anime_episodes.push({
-                display_name: item.name,
+                display_name: item.name.replace(/\.mp4$/, ''),
                 file_path: path.join(dirPath, item.name),
                 parent_directory: dirPath,
             });
