@@ -6,11 +6,10 @@ import sortDirectories from '../src/utils/sortDirectories';
 
 import {
     getAllDirectories,
-    getAllAnimeEpisodes,
     uploadDirectory,
     uploadBulkAnimeEpisodes,
     DirectoryUpdate,
-    updateDirectory,
+    patchDirectory,
 } from '../src/services/strapiService';
 
 const main = async () => {
@@ -42,7 +41,8 @@ const main = async () => {
     const finalResult: Directory[] = [];
 
     while (pendingToScan.length > 0) {
-        for (const dirPath of pendingToScan) {
+        for (let index = pendingToScan.length - 1; index >= 0; index--) {
+            const dirPath = pendingToScan[index];
             const folderToRemoveFromPending = pendingToScan.indexOf(dirPath);
             pendingToScan.splice(folderToRemoveFromPending, 1);
 
@@ -64,7 +64,6 @@ const main = async () => {
     console.log('- - - - - - - - - - - - -');
     console.log(' ');
 
-    writeJsonFile({ outputFolderPath, data: finalResult, fileName: 'directories' });
     writeJsonFile({ outputFolderPath, data: finalResult, fileName: 'full_data' });
 
     console.log(' ');
@@ -74,7 +73,6 @@ const main = async () => {
     console.log(' ');
 
     let directoriesData: DirectoryResponseStrapi[] = await getAllDirectories();
-    let animeEpisodesData: AnimeEpisodeResponseStrapi[] = await getAllAnimeEpisodes();
 
     console.log('- - - - - - - - - - - - -');
     console.log('Writting Strapi response into json db...');
@@ -82,7 +80,6 @@ const main = async () => {
     console.log(' ');
 
     writeJsonFile({ outputFolderPath, data: directoriesData, fileName: 'strapi_directories' });
-    writeJsonFile({ outputFolderPath, data: animeEpisodesData, fileName: 'strapi_anime_episodes' });
 
     console.log(' ');
     console.log('- - - - - - - - - - - - -');
@@ -107,7 +104,6 @@ const main = async () => {
     console.log(' ');
 
     const pendingDirectories = sortDirectories([...filteredDirectories]);
-    const directoriesInStrapi = [...directoriesData];
     const failedDirectories: Directory[] = [];
 
     for (let index = pendingDirectories.length - 1; index >= 0; index--) {
@@ -144,26 +140,82 @@ const main = async () => {
             directoryToUpdate.anime_episodes = uploadedAnimeEpisodes.map(animeEpisode => animeEpisode.id);
         }
 
-        const parentDirExists = directoriesInStrapi.find(
-            dir => dir.directory_path === pendingDirectory.parent_directory
-        );
+        const parentDirExists = directoriesData.find(dir => dir.directory_path === pendingDirectory.parent_directory);
 
         if (parentDirExists) {
             directoryToUpdate.parent_directory = parentDirExists.id;
         }
 
-        const updatedDir = await updateDirectory(directoryToUpdate);
         if (!parentDirExists && pendingDirectory.parent_directory) {
-            failedDirectories.push(pendingDirectory);
-        } else {
-            directoriesInStrapi.push({ ...uploadedDir, ...updatedDir });
+            failedDirectories.push({ ...pendingDirectory, reasonOfFailure: 'Parent was not found.' });
+            continue;
         }
+        const updatedDir = await patchDirectory(directoryToUpdate);
+
+        directoriesData.push({ ...uploadedDir, ...updatedDir });
         pendingDirectories.splice(index, 1);
     }
 
     console.log(' ');
     console.log('- - - - - - - - - - - - -');
-    console.log('Finished iterating through the array of directories.');
+    console.log('Finished iterating through the array of directories. Now adding their respective sub directories...');
+    console.log('- - - - - - - - - - - - -');
+    console.log(' ');
+
+    interface AddSubDirectories {
+        localDir: Directory;
+        strapiDir: DirectoryResponseStrapi;
+    }
+
+    const pendingToAddSubDirectories: AddSubDirectories[] = [];
+
+    for (const strapiDir of directoriesData) {
+        const localDir = finalResult.find(dir => dir.directory_path === strapiDir.directory_path) as Directory;
+
+        if (localDir.sub_directories.length === 0) {
+            continue;
+        }
+
+        if (strapiDir.sub_directories?.length === localDir.sub_directories.length) {
+            continue;
+        }
+
+        if (!strapiDir.sub_directories || strapiDir.sub_directories.length === 0) {
+            pendingToAddSubDirectories.push({ localDir, strapiDir });
+        }
+
+        pendingToAddSubDirectories.push({ localDir, strapiDir });
+    }
+
+    for (const pendingSubDirectory of pendingToAddSubDirectories) {
+        const subDirectoriesIds = pendingSubDirectory.localDir.sub_directories.map(localSubDirPath => {
+            const findStrapiVersion = directoriesData.find(
+                strapiDirectory => strapiDirectory.directory_path === localSubDirPath
+            );
+
+            if (!findStrapiVersion) return null;
+
+            return findStrapiVersion.id;
+        });
+
+        if (subDirectoriesIds.includes(null)) {
+            failedDirectories.push({
+                ...pendingSubDirectory.localDir,
+                reasonOfFailure: 'Some sub directories were not found in strapi.',
+            });
+        }
+
+        await patchDirectory({
+            directoryDocumentId: pendingSubDirectory.strapiDir.documentId,
+            display_name: pendingSubDirectory.localDir.display_name,
+            sub_directories: subDirectoriesIds as number[],
+        });
+    }
+
+    console.log('- - - - - - - - - - - - -');
+    console.log(
+        'The script has finished without any visible error! Please verify that the info in strapi is correct now.'
+    );
     console.log('- - - - - - - - - - - - -');
     console.log(' ');
 
