@@ -5,14 +5,13 @@ export interface Directory {
     parent_directory: string | null;
     sub_directories: string[];
     anime_episodes: AnimeEpisode[];
-    id: number;
+    reasonOfFailure?: string;
 }
 
 export interface AnimeEpisode {
     display_name: string;
     file_path: string;
     parent_directory: string;
-    id: number;
 }
 
 export interface DirectoryResponseStrapi {
