@@ -27,20 +27,22 @@ export const uploadDirectory = async (directory: Directory): Promise<DirectoryRe
         throw new Error(`Failed to upload directory: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as DirectoryResponseStrapi;
+    console.log('Uploaded directory: ' + directory.display_name);
 
-    return data;
+    const data = (await response.json()) as any;
+
+    return data.data as DirectoryResponseStrapi;
 };
 
 export interface DirectoryUpdate {
     anime_episodes?: number[];
     parent_directory?: number;
-    sub_directoryes?: number[];
+    sub_directories?: number[];
     directoryDocumentId: string;
     display_name: string;
 }
 
-export const updateDirectory = async (directory: DirectoryUpdate): Promise<DirectoryResponseStrapi> => {
+export const patchDirectory = async (directory: DirectoryUpdate): Promise<DirectoryResponseStrapi | void> => {
     const strapiBaseUrl = process.env.STRAPI_API_HOST;
     const strapiApiKey = process.env.STRAPI_API_KEY;
     const directoryToUpdate: Record<string, number | number[]> = {};
@@ -57,16 +59,17 @@ export const updateDirectory = async (directory: DirectoryUpdate): Promise<Direc
         directoryToUpdate.parent_directory = directory.parent_directory;
     }
 
-    if (directory.sub_directoryes && directory.sub_directoryes.length > 0) {
-        directoryToUpdate.sub_directoryes = directory.sub_directoryes;
+    if (directory.sub_directories && directory.sub_directories.length > 0) {
+        directoryToUpdate.sub_directories = directory.sub_directories;
     }
 
     if (Object.keys(directoryToUpdate).length === 0) {
-        console.log('Nothing to update. ' + directory.display_name);
+        console.log('No data was provided to send to strapi. ' + directory.display_name);
+        return;
     }
 
     const response = await fetch(`${strapiBaseUrl}/api/directories/${directory.directoryDocumentId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${strapiApiKey}`,
@@ -80,9 +83,11 @@ export const updateDirectory = async (directory: DirectoryUpdate): Promise<Direc
         throw new Error(`Failed to upload directory: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as DirectoryResponseStrapi;
+    console.log('Patched directory: ' + directory.display_name);
 
-    return data;
+    const data = (await response.json()) as any;
+
+    return data.data as DirectoryResponseStrapi;
 };
 
 export const getAllDirectories = async (): Promise<DirectoryResponseStrapi[]> => {
@@ -136,9 +141,14 @@ export const uploadBulkAnimeEpisodes = async (
         throw new Error(`Failed to upload anime episodes: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as AnimeEpisodeResponseStrapi[];
+    const data = (await response.json()) as any;
 
-    return data;
+    console.log(
+        'Uploaded anime episodes: ',
+        animeEpisodes.map(animeEpisode => animeEpisode.display_name)
+    );
+
+    return data.data as AnimeEpisodeResponseStrapi[];
 };
 
 export const getAllAnimeEpisodes = async (): Promise<AnimeEpisodeResponseStrapi[]> => {
