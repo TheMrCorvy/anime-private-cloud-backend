@@ -99,7 +99,7 @@ const main = async () => {
 
     console.log(' ');
     console.log('- - - - - - - - - - - - -');
-    console.log('Uploading Parent-less directories first, then the folders that do have a parent...');
+    console.log('Uploading directories...');
     console.log('- - - - - - - - - - - - -');
     console.log(' ');
 
@@ -108,8 +108,6 @@ const main = async () => {
 
     for (let index = pendingDirectories.length - 1; index >= 0; index--) {
         const pendingDirectory = pendingDirectories[index];
-
-        if (pendingDirectory.parent_directory) continue;
 
         const uploadedDir = await uploadDirectory(pendingDirectory);
 
