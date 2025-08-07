@@ -9,7 +9,7 @@ import {
     uploadDirectory,
     uploadBulkAnimeEpisodes,
     DirectoryUpdate,
-    patchDirectory,
+    updateDirectory,
 } from '../src/services/strapiService';
 
 const main = async () => {
@@ -132,6 +132,7 @@ const main = async () => {
         const directoryToUpdate: DirectoryUpdate = {
             directoryDocumentId: uploadedDir.documentId,
             display_name: pendingDirectory.display_name,
+            id: uploadedDir.id,
         };
 
         if (uploadedAnimeEpisodes.length > 0) {
@@ -148,7 +149,7 @@ const main = async () => {
             failedDirectories.push({ ...pendingDirectory, reasonOfFailure: 'Parent was not found.' });
             continue;
         }
-        const updatedDir = await patchDirectory(directoryToUpdate);
+        const updatedDir = await updateDirectory(directoryToUpdate);
 
         directoriesData.push({ ...uploadedDir, ...updatedDir });
         pendingDirectories.splice(index, 1);
@@ -203,10 +204,11 @@ const main = async () => {
             });
         }
 
-        await patchDirectory({
+        await updateDirectory({
             directoryDocumentId: pendingSubDirectory.strapiDir.documentId,
             display_name: pendingSubDirectory.localDir.display_name,
             sub_directories: subDirectoriesIds as number[],
+            id: pendingSubDirectory.strapiDir.id,
         });
     }
 
