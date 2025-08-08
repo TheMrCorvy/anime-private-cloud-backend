@@ -11,6 +11,7 @@ import {
     DirectoryUpdate,
     updateDirectory,
 } from '../src/services/strapiService';
+import fakeApiCall from '../mock/mockApiCall';
 
 const main = async () => {
     dotenv.config();
@@ -110,6 +111,8 @@ const main = async () => {
         const pendingDirectory = pendingDirectories[index];
 
         const uploadedDir = await uploadDirectory(pendingDirectory);
+        console.log('Waiting for next request...');
+        await fakeApiCall(2);
 
         if (!uploadedDir.documentId) {
             throw new Error(`There was a problem uploading the directory ${pendingDirectory.display_name}.`);
@@ -127,6 +130,8 @@ const main = async () => {
 
         if (pendingDirectory.anime_episodes.length > 0) {
             uploadedAnimeEpisodes = await uploadBulkAnimeEpisodes(pendingDirectory.anime_episodes, uploadedDir.id);
+            console.log('Waiting for next request...');
+            await fakeApiCall(1);
         }
 
         const directoryToUpdate: DirectoryUpdate = {
@@ -150,6 +155,8 @@ const main = async () => {
             continue;
         }
         const updatedDir = await updateDirectory(directoryToUpdate);
+        console.log('Waiting for next request...');
+        await fakeApiCall(0.5);
 
         directoriesData.push({ ...uploadedDir, ...updatedDir });
         pendingDirectories.splice(index, 1);
@@ -210,6 +217,8 @@ const main = async () => {
             sub_directories: subDirectoriesIds as number[],
             id: pendingSubDirectory.strapiDir.id,
         });
+        console.log('Waiting for next request...');
+        await fakeApiCall(1.5);
     }
 
     console.log('- - - - - - - - - - - - -');
