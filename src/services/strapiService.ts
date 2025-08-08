@@ -254,46 +254,54 @@ export const uploadBulkAnimeEpisodes = async (
         throw new Error('Strapi base URL or API key is not set in environment variables.');
     }
 
-    // eslint-disable-next-line no-undef
-    const controller = new AbortController();
-    // eslint-disable-next-line no-undef
-    const timeoutId = setTimeout(() => controller.abort(), 60 * 60 * 1000); // 30 minutes
+    if (animeEpisodes.length > 50) {
+        const separatedEpisodes = sepparateAnimeEpisodes(animeEpisodes);
+        const results: AnimeEpisodeResponseStrapi[] = [];
 
-    try {
-        const response = await fetch(`${strapiBaseUrl}/api/anime-episodes/bulk`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${strapiApiKey}`,
-            },
-            body: JSON.stringify({
-                data: animeEpisodes.map(animeEpisode => ({ ...animeEpisode, parent_directory: parentDirectory })),
-            }),
-            signal: controller.signal,
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to upload anime episodes: ${response.statusText}`);
+        for (const episodes of separatedEpisodes) {
+            const response = await uploadBulkAnimeEpisodes(episodes, parentDirectory);
+            results.push(...response);
         }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data = (await response.json()) as any;
 
         console.log(
-            'Uploaded anime episodes: ',
+            'Uploaded anime episodes in bulk: ',
             animeEpisodes.map(animeEpisode => animeEpisode.display_name)
         );
-
-        return data.data as AnimeEpisodeResponseStrapi[];
-    } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-            throw new Error('Bulk anime episodes upload timed out after 30 minutes');
-        }
-        throw error;
-    } finally {
-        // eslint-disable-next-line no-undef
-        clearTimeout(timeoutId);
+        return results;
     }
+
+    const response = await fetch(`${strapiBaseUrl}/api/anime-episodes/bulk`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${strapiApiKey}`,
+        },
+        body: JSON.stringify({
+            data: animeEpisodes.map(animeEpisode => ({ ...animeEpisode, parent_directory: parentDirectory })),
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to upload anime episodes: ${response.statusText}`);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = (await response.json()) as any;
+
+    console.log(
+        'Uploaded anime episodes: ',
+        animeEpisodes.map(animeEpisode => animeEpisode.display_name)
+    );
+
+    return data.data as AnimeEpisodeResponseStrapi[];
+};
+
+const sepparateAnimeEpisodes = (animeEpisodes: AnimeEpisode[]): AnimeEpisode[][] => {
+    const result: AnimeEpisode[][] = [];
+    for (let i = 0; i < animeEpisodes.length; i += 50) {
+        result.push(animeEpisodes.slice(i, i + 50));
+    }
+    return result;
 };
 
 export const getAllAnimeEpisodes = async (): Promise<AnimeEpisodeResponseStrapi[]> => {
