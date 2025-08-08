@@ -19,15 +19,13 @@ interface VideoStreamResponse {
 export const serveVideoFileService = ({ videoSrc, range }: NASServiceParams): VideoStreamResponse => {
     let fileSrc = '';
     if (isFeatureFlagEnabled(FeatureNames.SERVE_MOCK_DATA)) {
-        fileSrc = 'mock/deathNote.mp4';
+        fileSrc = join(process.cwd(), 'mock/deathNote.mp4');
     } else {
         fileSrc = videoSrc;
     }
 
-    const filePath = join(process.cwd(), fileSrc);
-
     try {
-        const fileMetadata = statSync(filePath);
+        const fileMetadata = statSync(fileSrc);
 
         if (!range) {
             const headers = {
@@ -35,7 +33,7 @@ export const serveVideoFileService = ({ videoSrc, range }: NASServiceParams): Vi
                 'Content-Length': fileMetadata.size.toString(),
                 'Accept-Ranges': 'bytes',
             };
-            const stream = createReadStream(filePath);
+            const stream = createReadStream(fileSrc);
 
             return { stream, headers, status: 200, message: 'Streaming video...' };
         }
@@ -49,7 +47,7 @@ export const serveVideoFileService = ({ videoSrc, range }: NASServiceParams): Vi
         }
 
         const chunkSize = end - start + 1;
-        const stream = createReadStream(filePath, { start, end });
+        const stream = createReadStream(fileSrc, { start, end });
 
         const headers = {
             'Content-Range': `bytes ${start}-${end}/${fileMetadata.size}`,
