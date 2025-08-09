@@ -1,3 +1,4 @@
+import separateArrays from '../utils/separateArrays';
 import { AnimeEpisode, AnimeEpisodeResponseStrapi, Directory, DirectoryResponseStrapi } from '../utils/typesDefinition';
 
 export const uploadDirectory = async (directory: Directory): Promise<DirectoryResponseStrapi> => {
@@ -255,7 +256,7 @@ export const uploadBulkAnimeEpisodes = async (
     }
 
     if (animeEpisodes.length > 50) {
-        const separatedEpisodes = sepparateAnimeEpisodes(animeEpisodes);
+        const separatedEpisodes = separateArrays(animeEpisodes, 50);
         const results: AnimeEpisodeResponseStrapi[] = [];
 
         for (const episodes of separatedEpisodes) {
@@ -294,14 +295,6 @@ export const uploadBulkAnimeEpisodes = async (
     );
 
     return data.data as AnimeEpisodeResponseStrapi[];
-};
-
-const sepparateAnimeEpisodes = (animeEpisodes: AnimeEpisode[]): AnimeEpisode[][] => {
-    const result: AnimeEpisode[][] = [];
-    for (let i = 0; i < animeEpisodes.length; i += 50) {
-        result.push(animeEpisodes.slice(i, i + 50));
-    }
-    return result;
 };
 
 export const getAllAnimeEpisodes = async (): Promise<AnimeEpisodeResponseStrapi[]> => {
