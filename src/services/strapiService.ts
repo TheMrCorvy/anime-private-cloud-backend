@@ -36,7 +36,7 @@ export const uploadDirectory = async (directory: Directory): Promise<DirectoryRe
     return data.data as DirectoryResponseStrapi;
 };
 
-export const uploadDirectoryBulk = async (directories: Directory[]): Promise<DirectoryResponseStrapi> => {
+export const uploadDirectoryBulk = async (directories: Directory[]): Promise<DirectoryResponseStrapi[]> => {
     const strapiBaseUrl = process.env.STRAPI_API_HOST;
     const strapiApiKey = process.env.STRAPI_API_KEY;
 
@@ -78,7 +78,7 @@ export const uploadDirectoryBulk = async (directories: Directory[]): Promise<Dir
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = (await response.json()) as any;
 
-        return data.data as DirectoryResponseStrapi;
+        return data.data as DirectoryResponseStrapi[];
     } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
             throw new Error('Bulk directory upload timed out after 30 minutes');
@@ -253,22 +253,6 @@ export const uploadBulkAnimeEpisodes = async (
 
     if (!strapiBaseUrl || !strapiApiKey) {
         throw new Error('Strapi base URL or API key is not set in environment variables.');
-    }
-
-    if (animeEpisodes.length > 50) {
-        const separatedEpisodes = separateArrays(animeEpisodes, 50);
-        const results: AnimeEpisodeResponseStrapi[] = [];
-
-        for (const episodes of separatedEpisodes) {
-            const response = await uploadBulkAnimeEpisodes(episodes, parentDirectory);
-            results.push(...response);
-        }
-
-        console.log(
-            'Uploaded anime episodes in bulk: ',
-            animeEpisodes.map(animeEpisode => animeEpisode.display_name)
-        );
-        return results;
     }
 
     const response = await fetch(`${strapiBaseUrl}/api/anime-episodes/bulk`, {
