@@ -109,7 +109,7 @@ const main = async () => {
 
     for (const directoryChunk of separatedPendingDirectories) {
         console.log(
-            'Uploading chunks of directories to Strapi...',
+            'Uploading chunk of directories to Strapi...',
             directoryChunk.map(dir => dir.display_name)
         );
 
