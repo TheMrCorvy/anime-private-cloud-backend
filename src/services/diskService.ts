@@ -83,7 +83,7 @@ export const writeJsonFile = ({ outputFolderPath, data, fileName }: JsonFilePara
     }
 
     const jsonPath = path.join(fullFolderPath, fileName + '.json');
-    fs.writeFileSync(jsonPath, JSON.stringify(data), 'utf-8');
+    fs.writeFileSync(jsonPath, JSON.stringify({ amount_of_items: data.length, data: data }), 'utf-8');
 
     console.log(`✔ JSON written to: ${jsonPath}`);
 };
