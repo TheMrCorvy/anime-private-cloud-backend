@@ -16,7 +16,7 @@ const sortDirectories = (directories: Directory[]): Directory[] => {
         const normalizedB = normalize(directoryB.parent_directory).split('/').filter(Boolean).length;
 
         if (normalizedA !== normalizedB) {
-            return normalizedB - normalizedA;
+            return normalizedA - normalizedB;
         }
 
         return directoryA.parent_directory.localeCompare(directoryB.parent_directory);
