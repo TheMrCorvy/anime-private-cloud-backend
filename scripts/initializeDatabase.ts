@@ -106,6 +106,7 @@ const main = async () => {
 
     const pendingDirectories = sortDirectories([...filteredDirectories]);
     const separatedPendingDirectories = separateArrays(pendingDirectories, 50);
+    const failedDirectories: Directory[] = [];
 
     for (const directoryChunk of separatedPendingDirectories) {
         console.log(
@@ -113,7 +114,16 @@ const main = async () => {
             directoryChunk.map(dir => dir.display_name)
         );
 
-        await uploadDirectoryBulk(directoryChunk);
+        const result = await uploadDirectoryBulk(directoryChunk);
+
+        if (result === null) {
+            console.warn(
+                'Failed to upload some directories. Please check the logs for more details.',
+                directoryChunk.map(dir => dir.display_name)
+            );
+            failedDirectories.push(...directoryChunk);
+            continue;
+        }
     }
 
     console.log(' ');
@@ -123,7 +133,6 @@ const main = async () => {
     console.log(' ');
 
     const updatedStrapidata = await getAllDirectories();
-    const failedDirectories: Directory[] = [];
 
     for (const directoryPendingToUpdate of pendingDirectories) {
         const strapiDirectory = updatedStrapidata.find(
@@ -153,6 +162,15 @@ const main = async () => {
             console.log(' ');
 
             const response = await uploadBulkAnimeEpisodes(animeEpisodesChunk, strapiDirectory.id);
+
+            if (response === null) {
+                console.warn(
+                    `Failed to upload anime episodes for directory ${directoryPendingToUpdate.display_name}. Skipping update.`
+                );
+                failedDirectories.push(directoryPendingToUpdate);
+                continue;
+            }
+
             uploadedAnimeEpisodesIds.push(...response.map(ep => ep.id));
 
             console.log(' ');
@@ -200,7 +218,13 @@ const main = async () => {
             patch,
         });
         console.log(' ');
-        await updateDirectory(patch);
+        const result = await updateDirectory(patch);
+
+        if (result === null) {
+            console.warn(`Failed to update directory ${directoryPendingToUpdate.display_name}. Skipping update.`);
+            failedDirectories.push(directoryPendingToUpdate);
+            continue;
+        }
     }
 
     if (failedDirectories.length > 0) {
