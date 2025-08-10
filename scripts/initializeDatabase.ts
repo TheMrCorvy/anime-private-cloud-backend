@@ -12,6 +12,7 @@ import {
     uploadDirectoryBulk,
 } from '../src/services/strapiService';
 import separateArrays from '../src/utils/separateArrays';
+import fakeApiCall from '../mock/mockApiCall';
 
 const main = async () => {
     dotenv.config();
@@ -114,6 +115,8 @@ const main = async () => {
             directoryChunk.map(dir => dir.display_name)
         );
 
+        await fakeApiCall(2);
+
         const result = await uploadDirectoryBulk(directoryChunk);
 
         if (result === null) {
@@ -131,6 +134,8 @@ const main = async () => {
     console.log('Uploaded all directories! Now uploading anime episodes and updating directories...');
     console.log('- - - - - - - - - - - - -');
     console.log(' ');
+
+    await fakeApiCall(2);
 
     const updatedStrapidata = await getAllDirectories();
 
@@ -161,6 +166,7 @@ const main = async () => {
             });
             console.log(' ');
 
+            await fakeApiCall(2);
             const response = await uploadBulkAnimeEpisodes(animeEpisodesChunk, strapiDirectory.id);
 
             if (response === null) {
@@ -218,6 +224,7 @@ const main = async () => {
             patch,
         });
         console.log(' ');
+        await fakeApiCall(2);
         const result = await updateDirectory(patch);
 
         if (result === null) {
