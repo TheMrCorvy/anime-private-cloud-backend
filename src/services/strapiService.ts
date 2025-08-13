@@ -215,21 +215,24 @@ export const getAllDirectories = async (): Promise<DirectoryResponseStrapi[]> =>
         throw new Error('Strapi base URL or API key is not set in environment variables.');
     }
 
-    const response = await fetch(`${strapiBaseUrl}/api/directories/all?populate=sub_directories`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${strapiApiKey}`,
-        },
-        method: 'GET',
-    });
+    const response = await fetch(
+        `${strapiBaseUrl}/api/directories/all?populate[sub_directories]=*&populate[parent_directory]=*`,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${strapiApiKey}`,
+            },
+            method: 'GET',
+        }
+    );
 
     if (!response.ok) {
         throw new Error(`Failed to fetch directories: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as DirectoryResponseStrapi[];
+    const data = (await response.json()) as any;
 
-    return data;
+    return data.data as DirectoryResponseStrapi[];
 };
 
 export const uploadBulkAnimeEpisodes = async (
