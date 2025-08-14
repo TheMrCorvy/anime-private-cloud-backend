@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { serveVideoFileService } from './services/serveVideoFileService';
+import path from 'path';
 
 const router = Router();
 
@@ -11,26 +12,16 @@ router.get('/health', (_req: Request, res: Response) => {
     });
 });
 
-router.post('/api/serve-anime-episode', async (req: Request, res: Response) => {
-    if (!req.body || Object.keys(req.body).length === 0) {
-        return res.status(400).json({
-            error: 'Body is empty or undefined',
-            message: 'Make sure to send a JSON body with Content-Type: application/json',
-            received: {
-                body: req.body,
-                contentType: req.headers['content-type'],
-            },
-        });
-    }
-
-    const filePath = req.body.filePath;
+router.get('/api/serve-anime-episode', (req: Request, res: Response) => {
+    const { filePath } = req.query as { filePath?: string; apiKey?: string };
     const range = req.headers.range || null;
 
     if (!filePath) {
-        return res.status(400).json({ message: 'Missing file path in request body.' });
+        return res.status(400).json({ message: 'Missing file path in query parameters.' });
     }
 
-    const { stream, headers, status, message, error } = serveVideoFileService({ videoSrc: filePath, range });
+    const resolvedPath = path.resolve(decodeURIComponent(filePath));
+    const { stream, headers, status, message, error } = serveVideoFileService({ videoSrc: resolvedPath, range });
 
     if (error) {
         return res.status(status).json({ message, error });
@@ -40,6 +31,7 @@ router.post('/api/serve-anime-episode', async (req: Request, res: Response) => {
         return res.status(500).json({ message: 'Stream or headers missing unexpectedly.' });
     }
 
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.writeHead(status, headers);
     stream.pipe(res);
 });
