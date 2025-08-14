@@ -10,13 +10,15 @@ declare module 'express-serve-static-core' {
 
 /**
  * Middleware to authenticate API keys
- * Looks for the API key in the 'x-api-key' or 'authorization' header
+ * Looks for the API key in the 'x-api-key' or 'authorization' header or in a query in the URL...
+ * (Yes I know...) The problem here is that the <video> html tag cannot send an API key in the headers or the body :sob:
  */
 export const authenticateApiKey = (validApiKeys: string[]): RequestHandler => {
     return (req: Request, res: Response, next: NextFunction) => {
-        // Look for API key in headers
         const apiKey =
-            (req.headers['x-api-key'] as string) || (req.headers['authorization']?.replace('Bearer ', '') as string);
+            (req.headers['x-api-key'] as string) ||
+            (req.headers['authorization']?.replace('Bearer ', '') as string) ||
+            (req.query.apiKey as string);
 
         if (!apiKey) {
             return res.status(401).json({
@@ -25,14 +27,7 @@ export const authenticateApiKey = (validApiKeys: string[]): RequestHandler => {
             });
         }
 
-        // Check if the API key is valid
-        const isValid = validApiKeys.some(
-            validKey =>
-                // If you have stored hashes, use verifyApiKey
-                // verifyApiKey(apiKey, validKey)
-                // For simplicity, here we compare directly
-                apiKey === validKey
-        );
+        const isValid = validApiKeys.some(validKey => apiKey === validKey);
 
         if (!isValid) {
             console.log(`Invalid API key attempt: ${apiKey}`);
@@ -44,7 +39,6 @@ export const authenticateApiKey = (validApiKeys: string[]): RequestHandler => {
             });
         }
 
-        // Add the API key to the request for later use
         req.apiKey = apiKey;
         next();
     };
@@ -59,7 +53,8 @@ export const authenticateApiKeyWithHashes = (getValidHashes: () => Promise<strin
         try {
             const apiKey =
                 (req.headers['x-api-key'] as string) ||
-                (req.headers['authorization']?.replace('Bearer ', '') as string);
+                (req.headers['authorization']?.replace('Bearer ', '') as string) ||
+                (req.query.apiKey as string);
 
             if (!apiKey) {
                 return res.status(401).json({
