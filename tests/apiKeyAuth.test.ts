@@ -20,6 +20,7 @@ describe('apiKeyAuth middleware', () => {
     beforeEach(() => {
         mockRequest = {
             headers: {},
+            query: {},
         };
         mockResponse = {
             status: jest.fn().mockReturnThis(),
